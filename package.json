@@ -1,6 +1,6 @@
 {
   "name": "@juadz/knex",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Use Knex as datalayer's for Juadz.",
   "main": "build/src/index.js",
   "scripts": {
