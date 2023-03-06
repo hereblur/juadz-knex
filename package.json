@@ -1,6 +1,6 @@
 {
   "name": "@juadz/knex",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Use Knex as datalayer's for Juadz.",
   "main": "build/src/index.js",
   "scripts": {
@@ -23,7 +23,7 @@
     "build/**/*"
   ],
   "peerDependencies": {
-    "@juadz/core": "^0.1.0",
+    "@juadz/core": "^0.1.2",
     "ajv": "^8.11.0",
     "knex": "^2.2.0"
   },
@@ -45,6 +45,6 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "@juadz/core": "^0.1.0"
+    "@juadz/core": "^0.1.2"
   }
 }
