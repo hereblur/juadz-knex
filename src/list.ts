@@ -5,7 +5,6 @@ import {Knex} from 'knex';
 export interface KnexQueryListOptions {
   searchFields: Array<string>; // Free text search fields
   debug?: boolean; // Return debug information
-  permanentFilter?: () => object;
 }
 
 interface TotalRow {
@@ -22,13 +21,12 @@ const knexCloneIQuery = (query: Knex): Knex => {
 };
 
 export function KnexQueryList(
-  options: KnexQueryListOptions
+  options: KnexQueryListOptions,
+  getConnection: Function
 ): IQueryListFunction {
-  const func: IQueryListFunction = async (
-    knexIQuery: unknown,
-    params: IQueryParam
-  ) => {
-    const query = knexIQuery as Knex;
+  const func: IQueryListFunction = async (params: IQueryParam) => {
+    const query = getConnection();
+
     query.where((query: Knex) => {
       params.filter.forEach((f: IQueryFilter) => {
         const {field, op, value} = f;
@@ -45,12 +43,9 @@ export function KnexQueryList(
           return;
         }
 
-        let values:
-          | (string | number | Date)[]
-          | Knex.QueryCallback<any, unknown[]>
-          | readonly Knex.DbColumn<any>[] = [];
+        let values: Array<string | number> = [];
         if (Array.isArray(value)) {
-          values = value;
+          values = value as Array<string | number>;
         }
 
         switch (op) {

@@ -1,4 +1,4 @@
-import {knexCrud} from './crud';
+import {SimpleKnexConnection} from './basic';
 
-export default knexCrud;
+export default SimpleKnexConnection;
 export * from './list';

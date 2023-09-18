@@ -1,26 +1,29 @@
 import {KnexQueryList} from './list';
 import {IQueryListResults} from '@juadz/core';
-import Knex from 'knex';
+import Knex, {Knex as KnexType} from 'knex';
 import {unlink} from 'fs';
 
-let knex: any;
+let knex: KnexType;
 
 beforeAll(async () => {
   knex = Knex({
     client: 'sqlite3',
     connection: {
-      filename: '/tmp/test.sqlite',
+      filename: ':memory:',
     },
     useNullAsDefault: true,
-  });
+  }) as KnexType;
 
-  await knex.schema.createTable('users', (table: any) => {
-    table.increments();
-    table.string('name');
-    table.string('last_name');
-    table.integer('age');
-    table.string('tool');
-  });
+  await knex.schema.createTable(
+    'users',
+    (table: KnexType.CreateTableBuilder) => {
+      table.increments();
+      table.string('name');
+      table.string('last_name');
+      table.integer('age');
+      table.string('tool');
+    }
+  );
 
   await knex('users').insert([
     {name: 'Peter', last_name: 'Parker', age: 11, tool: 'ruler'},
@@ -39,9 +42,9 @@ test('KnexQueryList', async () => {
   const func = KnexQueryList({
     debug: true,
     searchFields: ['name', 'last_name'],
-  });
+  }, () => knex('users'));
 
-  const result: IQueryListResults = await func(knex('users'), {
+  const result: IQueryListResults = await func({
     resource: 'users',
     range: {offset: 0, limit: 10},
     sort: [{field: 'age', direction: 'ASC'}],
