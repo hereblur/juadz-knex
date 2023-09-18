@@ -3,7 +3,7 @@ import {IQueryParam, IQueryFilter, IQueryListFunction} from '@juadz/core';
 import {Knex} from 'knex';
 
 export interface KnexQueryListOptions {
-  searchFields: Array<string>; // Free text search fields
+  searchFields?: Array<string>; // Free text search fields
   debug?: boolean; // Return debug information
 }
 
@@ -22,10 +22,10 @@ const knexCloneIQuery = (query: Knex): Knex => {
 
 export function KnexQueryList(
   options: KnexQueryListOptions,
-  getConnection: Function
+  getKnex: Function
 ): IQueryListFunction {
   const func: IQueryListFunction = async (params: IQueryParam) => {
-    const query = getConnection();
+    const query = getKnex('list');
 
     query.where((query: Knex) => {
       params.filter.forEach((f: IQueryFilter) => {

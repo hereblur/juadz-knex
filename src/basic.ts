@@ -1,97 +1,98 @@
-import {IDatabaseConnection, DatabaseConnectionGetter} from '@juadz/core';
+import {IDatabaseModel, ResourceAction} from '@juadz/core';
 import {Knex} from 'knex';
 import {KnexQueryList, KnexQueryListOptions} from './list';
 import {IConnectionProvider, PlainObject} from './types';
 
 export function SimpleKnexConnection(
   connectionProvider: IConnectionProvider | Knex,
-  options: KnexQueryListOptions
-): DatabaseConnectionGetter {
-  return (resourceName: string, action: string) => {
-    const getKnex = (action: string): Knex => {
-      if (typeof connectionProvider === 'function') {
-        return connectionProvider(resourceName, action) as Knex;
-      }
+  options: KnexQueryListOptions,
+  tableName: string
+): IDatabaseModel {
 
-      return connectionProvider;
-    };
+  const getKnex = (action: ResourceAction): Knex => {
+    if (typeof connectionProvider === 'function') {
+      return connectionProvider(tableName, action) as Knex;
+    }
 
-    const get = async (id: string | number) => {
-      const c = await getKnex(action)
-        .select('*')
-        .where('id', id)
-        .then(t => {
-          return t[0];
-        });
+    return connectionProvider;
+  };
 
-      return c;
-    };
-
-    const patch = async (id: string | number, patch: object) => {
-      await getKnex(action).where('id', id).update(patch);
-
-      return await get(id);
-    };
-
-    const create = async (params_: object) => {
-      const params = {
-        ...params_,
-      };
-
-      const result = await getKnex(action)
-        .returning('id')
-        .insert({
-          ...params,
-        });
-
-      const insertedId = result[0];
-      const insertedData = await get(insertedId);
-
-      return insertedData;
-    };
-
-    const replace = async (id: string | number, params_: object) => {
-      const params = {
-        id,
-        ...params_,
-      } as PlainObject;
-
-      const fields: Array<string> = [];
-      const values: Array<unknown> = [];
-      Object.keys(params).forEach(f => {
-        fields.push(`\`${f}\`=?`);
-        values.push(params[f]);
+  const get = async (id: string | number) => {
+    const c = await getKnex('get')
+      .select('*')
+      .where('id', id)
+      .then(t => {
+        return t[0];
       });
 
-      // console.log(
-      //   `REPLACE INTO ${resourceName}(${fields.join(', ')})`,
-      //   values.join(' | ')
-      // );
-      await getKnex(action).raw(
-        `REPLACE INTO ${resourceName}(${fields.join(', ')})`,
-        values
-      );
-
-      const insertedData = await get(id);
-
-      return insertedData;
-    };
-
-    const delete_ = async (id: string | number) => {
-      const result = await getKnex(action).where('id', id).delete();
-
-      return result;
-    };
-
-    const list = KnexQueryList(options, getKnex);
-
-    return {
-      get,
-      replace,
-      patch,
-      create,
-      delete: delete_,
-      list,
-    } as IDatabaseConnection;
+    return c;
   };
-}
+
+  const patch = async (id: string | number, patch: object) => {
+    await getKnex('update').where('id', id).update(patch);
+
+    return await get(id);
+  };
+
+  const create = async (params_: object) => {
+    const params = {
+      ...params_,
+    };
+
+    const result = await getKnex('create')
+      .returning('id')
+      .insert({
+        ...params,
+      });
+
+    const insertedId = result[0];
+    const insertedData = await get(insertedId);
+
+    return insertedData;
+  };
+
+  const replace = async (id: string | number, params_: object) => {
+    const params = {
+      id,
+      ...params_,
+    } as PlainObject;
+
+    const fields: Array<string> = [];
+    const values: Array<unknown> = [];
+    Object.keys(params).forEach(f => {
+      fields.push(`\`${f}\`=?`);
+      values.push(params[f]);
+    });
+
+    // console.log(
+    //   `REPLACE INTO ${resourceName}(${fields.join(', ')})`,
+    //   values.join(' | ')
+    // );
+    await getKnex('replace').raw(
+      `REPLACE INTO ${tableName}(${fields.join(', ')})`,
+      values
+    );
+
+    const insertedData = await get(id);
+
+    return insertedData;
+  };
+
+  const delete_ = async (id: string | number) => {
+    const result = await getKnex('delete').where('id', id).delete();
+
+    return result;
+  };
+
+  const list = KnexQueryList(options, getKnex);
+
+  return {
+    get,
+    replace,
+    patch,
+    create,
+    delete: delete_,
+    list,
+  } as IDatabaseModel;
+};
+
