@@ -28,7 +28,7 @@ export function SimpleKnexConnection(
     return c;
   };
 
-  const patch = async (id: string | number, patch: object) => {
+  const update = async (id: string | number, patch: object) => {
     await getKnex('update').where('id', id).update(patch);
 
     return await get(id);
@@ -89,7 +89,7 @@ export function SimpleKnexConnection(
   return {
     get,
     replace,
-    patch,
+    update,
     create,
     delete: delete_,
     list,
